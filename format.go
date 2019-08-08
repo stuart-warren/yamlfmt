@@ -16,26 +16,26 @@ const indent = 2
 // Lists are not indented
 func Format(r io.Reader) ([]byte, error) {
 	var docs []interface{}
-	d := yaml.NewDecoder(r)
+	dec := yaml.NewDecoder(r)
 	for {
 		var doc interface{}
-		err := d.Decode(&doc)
+		err := dec.Decode(&doc)
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed decoding: %s", err)
 		}
-		docs = append(docs, doc)
+		docs = append(docs, &doc)
 	}
 
 	out := bytes.NewBuffer(nil)
 	for _, doc := range docs {
-		e := yaml.NewEncoder(out)
-		e.SetIndent(indent)
-		defer e.Close()
+		enc := yaml.NewEncoder(out)
+		enc.SetIndent(indent)
+		defer enc.Close()
 		out.WriteString("---\n")
-		if err := e.Encode(&doc); err != nil {
+		if err := enc.Encode(&doc); err != nil {
 			return nil, fmt.Errorf("failed encoding: %s", err)
 		}
 	}
