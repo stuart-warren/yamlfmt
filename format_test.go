@@ -7,36 +7,22 @@ import (
 	"github.com/stuart-warren/yamlfmt"
 )
 
-func TestYamlIn(t *testing.T) {
+func TestYamlSort(t *testing.T) {
 	var in = `---
 foo:
-  baz: fuzz
-  bar: foo
-  buz:
+  buz: foo
+  bar:
     foo: bar
-    baz: boo
     biz:
     - 1
-    - 2
-    - 3
----
-bar:
-  foo: baz
 `
 	var expected = `---
 foo:
-  bar: foo
-  baz: fuzz
-  buz:
-    baz: boo
+  bar:
     biz:
     - 1
-    - 2
-    - 3
     foo: bar
----
-bar:
-  foo: baz
+  buz: foo
 `
 	exp := []byte(expected)
 	out, err := yamlfmt.Format(bytes.NewBuffer([]byte(in)))
@@ -50,13 +36,15 @@ bar:
 	t.Logf("expected:\n%v\n", exp)
 }
 
-func TestCommentedYamlIn(t *testing.T) {
+func TestCommentedYaml(t *testing.T) {
 	var in = `---
 bar:
   foo: baz # comment
+  boo: fizz
 `
 	var expected = `---
 bar:
+  boo: fizz
   foo: baz # comment
 `
 	exp := []byte(expected)
