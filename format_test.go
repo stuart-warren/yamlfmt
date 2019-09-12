@@ -9,20 +9,22 @@ import (
 
 func TestYamlSort(t *testing.T) {
 	var in = `---
-foo:
-  buz: foo
-  bar:
-    foo: bar
-    biz:
-    - 1
+k:
+  c: l
+  i:
+    i: k
+  v:
+    # comment
+    c: i
 `
 	var expected = `---
-foo:
-  bar:
-    biz:
-    - 1
-    foo: bar
-  buz: foo
+k:
+  c: l
+  i:
+    i: k
+  v:
+    # comment
+    c: i
 `
 	exp := []byte(expected)
 	out, err := yamlfmt.Format(bytes.NewBuffer([]byte(in)))
@@ -30,7 +32,7 @@ foo:
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
 	if !bytes.Equal(out, exp) {
-		t.Fatalf("Got:\n%q\nexpected:\n%q\n", out, exp)
+		t.Fatalf("Got:\n%s\nexpected:\n%s\n", out, exp)
 	}
 	t.Logf("got:\n%v\n", out)
 	t.Logf("expected:\n%v\n", exp)
@@ -53,7 +55,7 @@ bar:
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
 	if !bytes.Equal(out, exp) {
-		t.Fatalf("Got:\n%q\nexpected:\n%q\n", out, exp)
+		t.Fatalf("Got:\n%s\nexpected:\n%s\n", out, exp)
 	}
 	t.Logf("got:\n%v\n", out)
 	t.Logf("expected:\n%v\n", exp)
