@@ -7,38 +7,46 @@ import (
 	"github.com/stuart-warren/yamlfmt"
 )
 
-var in = `---
+func TestYamlSort(t *testing.T) {
+	var in = `---
 foo:
-  baz: fuzz
-  bar: foo
-  buz:
+  buz: foo
+  bar:
     foo: bar
-    baz: boo
     biz:
     - 1
-    - 2
-    - 3
----
-bar:
-  foo: baz
 `
-var expected = `---
+	var expected = `---
 foo:
-  bar: foo
-  baz: fuzz
-  buz:
-    baz: boo
+  bar:
     biz:
     - 1
-    - 2
-    - 3
     foo: bar
----
-bar:
-  foo: baz
+  buz: foo
 `
+	exp := []byte(expected)
+	out, err := yamlfmt.Format(bytes.NewBuffer([]byte(in)))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s\n", err)
+	}
+	if !bytes.Equal(out, exp) {
+		t.Fatalf("Got:\n%q\nexpected:\n%q\n", out, exp)
+	}
+	t.Logf("got:\n%v\n", out)
+	t.Logf("expected:\n%v\n", exp)
+}
 
-func TestYamlIn(t *testing.T) {
+func TestCommentedYaml(t *testing.T) {
+	var in = `---
+bar:
+  foo: baz # comment
+  boo: fizz
+`
+	var expected = `---
+bar:
+  boo: fizz
+  foo: baz # comment
+`
 	exp := []byte(expected)
 	out, err := yamlfmt.Format(bytes.NewBuffer([]byte(in)))
 	if err != nil {
