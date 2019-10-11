@@ -17,10 +17,10 @@ const indent = 2
 func Format(r io.Reader) ([]byte, error) {
 	dec := yaml.NewDecoder(r)
 	out := bytes.NewBuffer(nil)
-	enc := yaml.NewEncoder(out)
-	enc.SetIndent(indent)
-	defer enc.Close()
 	for {
+		enc := yaml.NewEncoder(out)
+		enc.SetIndent(indent)
+		defer enc.Close()
 		var doc yaml.Node
 		err := dec.Decode(&doc)
 		if err == io.EOF {
@@ -33,6 +33,7 @@ func Format(r io.Reader) ([]byte, error) {
 		if err := enc.Encode(sortYAML(&doc)); err != nil {
 			return nil, fmt.Errorf("failed encoding: %s", err)
 		}
+		enc.Close()
 	}
 	return out.Bytes(), nil
 }
