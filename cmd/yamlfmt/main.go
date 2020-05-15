@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -21,17 +22,24 @@ import (
 	"github.com/stuart-warren/yamlfmt"
 )
 
-func main() {
-	if err := run(os.Stdin, os.Stdout, os.Args); err != nil {
-		log.Fatalln(err)
-	}
-}
-
 var (
 	list   bool
 	write  bool
 	doDiff bool
+	doFail bool
+
+	errRequiresFmt = errors.New("RequiresFmt")
 )
+
+func main() {
+	err := run(os.Stdin, os.Stdout, os.Args)
+	if err == errRequiresFmt {
+		os.Exit(1)
+	}
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func run(in io.Reader, out io.Writer, args []string) error {
 	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
@@ -39,6 +47,7 @@ func run(in io.Reader, out io.Writer, args []string) error {
 	flags.BoolVar(&list, "l", false, "list files whose formatting differs from yamlfmt's")
 	flags.BoolVar(&write, "w", false, "write result to (source) file instead of stdout")
 	flags.BoolVar(&doDiff, "d", false, "display diffs instead of rewriting files")
+	flags.BoolVar(&doFail, "f", false, "exit non zero if changes detected")
 	flags.Usage = func() {
 		fmt.Fprintf(os.Stderr, "formats yaml files with 2 space indent, sorted dicts and non-indented lists\n")
 		fmt.Fprintf(os.Stderr, "usage: yamlfmt [flags] [path ...]\n")
@@ -61,7 +70,7 @@ func run(in io.Reader, out io.Writer, args []string) error {
 		case err != nil:
 			return err
 		case dir.IsDir():
-			walkDir(path)
+			return walkDir(path)
 		default:
 			if err := processFile(path, nil, os.Stdout, false); err != nil {
 				return err
@@ -98,6 +107,10 @@ func processFile(filename string, in io.Reader, out io.Writer, stdin bool) error
 		return err
 	}
 
+	if !list && !write && !doDiff {
+		_, err = out.Write(res)
+	}
+
 	if !bytes.Equal(src, res) {
 		// formatting has changed
 		if list {
@@ -127,29 +140,41 @@ func processFile(filename string, in io.Reader, out io.Writer, stdin bool) error
 			fmt.Printf("diff -u %s %s\n", filepath.ToSlash(filename+".orig"), filepath.ToSlash(filename))
 			out.Write(data)
 		}
-	}
-
-	if !list && !write && !doDiff {
-		_, err = out.Write(res)
+		if doFail {
+			return errRequiresFmt
+		}
 	}
 
 	return err
 }
 
-func visitFile(path string, f os.FileInfo, err error) error {
+type fileVisitor struct {
+	changesDetected bool
+}
+
+func (fv *fileVisitor) visitFile(path string, f os.FileInfo, err error) error {
 	if err == nil && isYamlFile(f) {
 		err = processFile(path, nil, os.Stdout, false)
 	}
 	// Don't complain if a file was deleted in the meantime (i.e.
 	// the directory changed concurrently while running gofmt).
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !os.IsNotExist(err) && err != errRequiresFmt {
 		return err
+	}
+	if err == errRequiresFmt {
+		fv.changesDetected = true
 	}
 	return nil
 }
 
-func walkDir(path string) {
-	filepath.Walk(path, visitFile)
+func walkDir(path string) error {
+	fv := fileVisitor{}
+	filepath.Walk(path, fv.visitFile)
+	var err error
+	if fv.changesDetected {
+		err = errRequiresFmt
+	}
+	return err
 }
 
 const chmodSupported = runtime.GOOS != "windows"
@@ -185,7 +210,7 @@ func backupFile(filename string, data []byte, perm os.FileMode) (string, error) 
 func isYamlFile(f os.FileInfo) bool {
 	// ignore non-Yaml files
 	name := f.Name()
-	return !f.IsDir() && !strings.HasPrefix(name, ".") && (strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml"))
+	return !f.IsDir() && (strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml"))
 }
 
 func writeTempFile(dir, prefix string, data []byte) (string, error) {
