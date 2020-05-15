@@ -210,7 +210,7 @@ func backupFile(filename string, data []byte, perm os.FileMode) (string, error) 
 func isYamlFile(f os.FileInfo) bool {
 	// ignore non-Yaml files
 	name := f.Name()
-	return !f.IsDir() && !strings.HasPrefix(name, ".") && (strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml"))
+	return !f.IsDir() && (strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml"))
 }
 
 func writeTempFile(dir, prefix string, data []byte) (string, error) {
