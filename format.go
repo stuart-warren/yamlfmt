@@ -33,7 +33,6 @@ func Format(r io.Reader) ([]byte, error) {
 		if err := enc.Encode(sortYAML(&doc)); err != nil {
 			return nil, fmt.Errorf("failed encoding: %s", err)
 		}
-		enc.Close()
 	}
 	return out.Bytes(), nil
 }
