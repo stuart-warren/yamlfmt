@@ -22,6 +22,9 @@ archives:
     linux: Linux
     windows: Windows
     amd64: x86_64
+  files:
+  - README.md
+  - LICENSE
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -32,3 +35,22 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+    - Merge pull request
+    - Merge branch
+    - go mod tidy
+brews:
+- name: yamlfmt
+  tap:
+    owner: stuart-warren
+    name: homebrew-apps
+    token: "{{ .Env.HOMEBREW_GITHUB_TOKEN }}"
+  folder: Formula
+  homepage:  https://github.com/stuart-warren/yamlfmt
+  description: based on gofmt, yamlfmt formats yaml files into a canonical format
+  license: BSD-3-clause
+  test: |
+    system "#{bin}/yamlfmt -help"
+  dependencies:
+  - name: go
+  install: |-
+    bin.install "yamlfmt"
