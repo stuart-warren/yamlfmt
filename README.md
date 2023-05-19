@@ -16,6 +16,7 @@ usage: yamlfmt [flags] [path ...]
   -d    display diffs instead of rewriting files
   -f    exit non zero if changes detected
   -l    list files whose formatting differs from yamlfmt's
+  -s    sort maps & sequences, WARNING: This may break anchors & aliases
   -w    write result to (source) file instead of stdout
 ```
 
