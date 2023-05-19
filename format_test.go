@@ -27,7 +27,7 @@ k:
     c: i
 `
 	exp := []byte(expected)
-	out, err := yamlfmt.Format(bytes.NewReader([]byte(in)))
+	out, err := yamlfmt.Format(bytes.NewReader([]byte(in)), true)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
@@ -50,7 +50,7 @@ bar:
   foo: baz # comment
 `
 	exp := []byte(expected)
-	out, err := yamlfmt.Format(bytes.NewReader([]byte(in)))
+	out, err := yamlfmt.Format(bytes.NewReader([]byte(in)), true)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
@@ -97,7 +97,7 @@ k:
     c: i
 `
 	exp := []byte(expected)
-	out, err := yamlfmt.Format(bytes.NewReader([]byte(in)))
+	out, err := yamlfmt.Format(bytes.NewReader([]byte(in)), true)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
